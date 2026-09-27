@@ -7,10 +7,19 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 // Tells Spring that this class contains security configuration
 @Configuration
 public class SecurityConfiguration {
+
+    private final JwtRequestFilter jwtRequestFilter;
+
+    public SecurityConfiguration(JwtRequestFilter jwtRequestFilter) {
+        this.jwtRequestFilter = jwtRequestFilter;
+    }
 
     // Creates the PasswordEncoder object that Spring can use
     // We use this inside UserService to encrypt the users password
@@ -19,7 +28,6 @@ public class SecurityConfiguration {
         // Bcrypt securely hashes the password before it is stored in the database
         return new BCryptPasswordEncoder();
     }
-
 
     // Defines which URLs can be accessed and which URLs should be blocked
     @Bean
@@ -39,16 +47,30 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
 
                         // These endpoints can be accessed without logging in
-                        .requestMatchers("/auth/users/register",
-                                "/error").permitAll()
+                        .requestMatchers(
+                                "/auth/users/register",
+                                "/auth/users/login",
+                                "/error"
+                        ).permitAll()
 
                         // Every other endpoint requires the user to be authenticated
                         .anyRequest().authenticated()
                 );
-
+        // Checks the JWT before Spring's normal authentication filter
+        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         // Builds and returns the security configuration
         return http.build();
+    }
+
+
+    // Handles authentication when the user logs in
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authConfig) throws Exception {
+
+        // Gets Spring Security's configured AuthenticationManager
+        return authConfig.getAuthenticationManager();
     }
 
 }
