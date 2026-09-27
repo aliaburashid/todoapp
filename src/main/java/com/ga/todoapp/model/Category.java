@@ -1,5 +1,6 @@
 package com.ga.todoapp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,4 +31,9 @@ public class Category {
     // orphan: if an Item is removed from this category's itemList, Hibernate can also remove that orphaned item from the database.
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "category", orphanRemoval = true)
     private List<Item> itemList;
+
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }

@@ -1,6 +1,4 @@
 package com.ga.todoapp.model;
-
-import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -36,4 +34,8 @@ public class Item {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }
