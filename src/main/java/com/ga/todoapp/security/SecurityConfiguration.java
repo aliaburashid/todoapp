@@ -15,10 +15,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfiguration {
 
-    private final JwtRequestFilter jwtRequestFilter;
+    private MyUserDetailsService myUserDetailsService;
 
-    public SecurityConfiguration(JwtRequestFilter jwtRequestFilter) {
-        this.jwtRequestFilter = jwtRequestFilter;
+    @Bean
+    public JwtRequestFilter authenticationJwtTokenFilter() {
+        return new JwtRequestFilter();
     }
 
     // Creates the PasswordEncoder object that Spring can use
@@ -56,8 +57,10 @@ public class SecurityConfiguration {
                         // Every other endpoint requires the user to be authenticated
                         .anyRequest().authenticated()
                 );
-        // Checks the JWT before Spring's normal authentication filter
-        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(
+                authenticationJwtTokenFilter(),
+                UsernamePasswordAuthenticationFilter.class
+        );
 
         // Builds and returns the security configuration
         return http.build();
